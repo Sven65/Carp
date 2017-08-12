@@ -39,7 +39,7 @@ class Client extends EventEmitter{
 
 		this._channels = {}
 
-		this._verbose = false
+		this._verbose = true
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Client extends EventEmitter{
 
 	/*
 	 * Emits when the client is logged in (ready)
-	 * @event Client#login
+	 * @event Client#ready
 	 * @type {Object}
 	 */
 
@@ -88,13 +88,26 @@ class Client extends EventEmitter{
 
 				const lastCode = util.getLastCode(message)
 
+				
+
 				if(lastCode !== undefined && lastCode !== null){
 					if(lastCode.code === 376){
-						this.emit("login")
+						this.emit("ready")
 					}
 				}
 
+
 				let parts = util.splitMessage(message)
+
+				if(parts.command === "NOTICE"){
+					if(parts.params.join(" ").replace(/\r?\n|\r/g, "").toLowerCase() === "* :*** no ident response"){
+						this.emit("ready")
+					}
+				}
+
+				if(this._verbose){
+					console.log(parts)
+				}
 
 				if(parts.command === "JOIN"){
 					let channel = parts.params[0].replace(/\r?\n|\r/g, "")
@@ -134,9 +147,7 @@ class Client extends EventEmitter{
 					}
 				}
 
-				if(this._verbose){
-					console.log(parts)
-				}
+				
 			}
 		})
 
@@ -191,9 +202,10 @@ class Client extends EventEmitter{
 					this.addEventListeners()
 					this.emit("connected")
 					this.sendCommand(`PASS ${this._clientData.pass}\n`)
+					this.sendCommand(`NICK ${this._clientData.nick}\n`)
 
 					this.sendCommand(`USER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
-					this.sendCommand(`NICK ${this._clientData.nick}\n`)
+					
 				})
 			}
 		}
@@ -233,8 +245,8 @@ class Client extends EventEmitter{
 	 * @param {String} channel - The channel to join
 	 * @author Mackan
 	 */
-	join(channel){
-		this.sendCommand(`JOIN ${channel}\n`)
+	join(...channels){
+		this.sendCommand(`JOIN ${channels.join(",")}\n`)
 	}
 }
 
