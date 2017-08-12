@@ -48,6 +48,9 @@ class Channel extends EventEmitter{
 
 		const user = new User(parts.sender)
 
+		parts.params[0] = parts.params[0].replace(":", "")
+		parts.params[parts.params.length-1] = parts.params[parts.params.length-1].replace(/\r?\n|\r/g, "")
+
 		this.emit('message', user, parts.params)
 	}
 

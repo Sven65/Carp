@@ -38,6 +38,8 @@ class Client extends EventEmitter{
 		this._connection = null
 
 		this._channels = {}
+
+		this._verbose = false
 	}
 
 	/**
@@ -100,7 +102,9 @@ class Client extends EventEmitter{
 					let user = util.resolveUser(parts.sender)
 
 					if(user.name === this._clientData.username){
-						this._channels[channel] = new Channel(this._connection, channel)
+						if(!this._channels[channel]){
+							this._channels[channel] = new Channel(this._connection, channel)
+						}
 						this.emit("join", {channelName: channel, channel: this._channels[channel]})
 					}else{
 						this._channels[channel].handleJoin(parts)
@@ -120,9 +124,19 @@ class Client extends EventEmitter{
 					}else{
 						this._channels[channel].handlePart(parts)
 					}
+				}else{
+					for(let i=0;i<parts.params.length;i++){
+						if(parts.params[i] === "JOIN"){
+							let channel = parts.params[i+1].split(":")[0].replace(/\r?\n|\r/g, "")
+							this._channels[channel] = new Channel(this._connection, channel)
+							this.emit("join", {channelName: channel, channel: this._channels[channel]})
+						}
+					}
 				}
 
-				console.log(parts)
+				if(this._verbose){
+					console.log(parts)
+				}
 			}
 		})
 
@@ -196,14 +210,31 @@ class Client extends EventEmitter{
 		}
 	}
 
+	quit(message){
+
+		let command = "QUIT"
+
+		if(message !== undefined && message !== null){
+			command += ` :${message}`
+		}
+
+		this.sendCommand(command)
+		this._connection.end()
+	}
+
+	sleep(time){
+		var waitTill = new Date(new Date().getTime() + time * 1000);
+		while(waitTill > new Date()){}
+	}
+
 	/**
 	 * Joins channels
 	 * @function
-	 * @param {...String} channels - The channels to join
+	 * @param {String} channel - The channel to join
 	 * @author Mackan
 	 */
-	join(...channels){
-		this.sendCommand(`JOIN ${channels.join(" ")}\n`)
+	join(channel){
+		this.sendCommand(`JOIN ${channel}\n`)
 	}
 }
 

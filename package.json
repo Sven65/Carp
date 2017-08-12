@@ -1,5 +1,5 @@
 {
-  "name": "carp",
+  "name": "carp-irc",
   "version": "1.0.0",
   "description": "An irc library",
   "main": "src/index.js",
