@@ -21,7 +21,7 @@ module.exports = (line) => {
 		}
 	}
 
-	match = line.match(/^([^]+) */)
+	match = line.match(/^([^ ]+) */)
 	message.command = match[1]
 	message.rawCommand = match[1]
 	message.commandType = 'normal'

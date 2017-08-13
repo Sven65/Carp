@@ -1,4 +1,25 @@
-{
+module.exports = {
+
+	"001": {
+		name: "RPL_WELCOME",
+		type: "REPLY"
+	},
+	"002": {
+		name: "RPL_YOURHOST",
+		type: "REPLY"
+	},
+	"003": {
+		name: "RPL_CREATED",
+		type: "REPLY"
+	},
+	"004": {
+		name: "RPL_MYINFO",
+		type: "REPLY"
+	},
+	"005": {
+		name: "RPL_ISUPPORT",
+		type: "REPLY"
+	},
 
 	301: {
 		name: "RPL_AWAY",

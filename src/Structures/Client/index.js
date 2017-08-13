@@ -5,6 +5,11 @@ const os = require("os")
 const util = require("../../Util")
 
 const Channel = require("../Channel")
+const User = require("../User")
+
+const Parser = require("../../Util/ParseMessage")
+
+
 
 class Client extends EventEmitter{
 
@@ -40,6 +45,10 @@ class Client extends EventEmitter{
 		this._channels = {}
 
 		this._verbose = true
+
+		this._nickMod = 0
+
+		this._users = {}
 	}
 
 	/**
@@ -71,134 +80,149 @@ class Client extends EventEmitter{
 	 * @property {String} data.channelName - The name of the channel joined
 	 * @property {Channel} data.channel - The channel joined
 	 */
+
+	/*
+	 * Emits when the client revieves a private message
+	 * @event Client#message
+	 * @type {Object}
+	 * @property {User} user - The user that sent the message
+	 * @property {String} message - The message that was sent
+	 */
 	addEventListeners(){
-		this._connection.on('data', (data) => {
 
-			/* var buffer = new Buffer('');
+		let buffer = new Buffer('')
 
-			    function handleData(chunk) {
-			        self.conn.cyclingPingTimer.notifyOfActivity();
+		this.on('raw', message => {
 
-			        if (typeof (chunk) === 'string') {
-			            buffer += chunk;
-			        } else {
-			            buffer = Buffer.concat([buffer, chunk]);
-			        }
-
-			        var lines = self.convertEncoding(buffer).toString().split(lineDelimiter);
-
-			        if (lines.pop()) {
-			            // if buffer is not ended with \r\n, there's more chunks.
-			            return;
-			        } else {
-			            // else, initialize the buffer.
-			            buffer = new Buffer('');
-			        }
-
-			        lines.forEach(function iterator(line) {
-			            if (line.length) {
-			                var message = parseMessage(line, self.opt.stripColors);
-
-			                try {
-			                    self.emit('raw', message);
-			                } catch (err) {
-			                    if (!self.conn.requestedDisconnect) {
-			                        throw err;
-			                    }
-			                }
-			            }
-			        });
-			    }
-			*/
-
-
-
-			let message = data//.toString()
-
-			console.log(message+"\n\n")
-
-			if(util.isPing(message)){
-				this.sendCommand(`PONG ${util.pingFrom(message)}`)
-			}else if(util.isMode(message, this._clientData.username)){
-			}else{
-
-				const parsedMessage = util.parseMessage(message)
-
-
-				const lastCode = util.getLastCode(message)
-
-				
-
-				if(lastCode !== undefined && lastCode !== null){
-
-					switch(lastCode.code){
-						case 376:
-							this.emit('ready')
-						break
-						case 451:
-							this.emit('error', 451, 'You have not registered')
-						break
-					}
-				}
-
-
-				let parts = util.splitMessage(message)
-
-				let newLines = util.newLineSplit(message)
-
-				if(this._verbose){
-					//console.log(newLines)
-				}
-
-				if(parts.command === "NOTICE"){
-					if(parts.params.join(" ").replace(/\r?\n|\r/g, "").toLowerCase() === "* :*** no ident response"){
-						this.sendIdent()
-						//this.emit("ready")
-					}
-
-
-				}
-
-				if(parts.command === "JOIN"){
-					let channel = parts.params[0].replace(/\r?\n|\r/g, "")
-
-					let user = util.resolveUser(parts.sender)
-
-					if(user.name === this._clientData.username){
-						if(!this._channels[channel]){
-							this._channels[channel] = new Channel(this._connection, channel)
-						}
-						this.emit("join", {channelName: channel, channel: this._channels[channel]})
-					}else{
-						this._channels[channel].handleJoin(parts)
-					}
-				}else if(parts.command === "PRIVMSG"){
-					let channel = parts.params[0]
-					this._channels[channel].handleMessage(parts)
-				}else if(parts.command === "PART"){
-
-					let channel = parts.params[0].replace(/\r?\n|\r/g, "")
-
-					let user = util.resolveUser(parts.sender)
-
-					if(user.name === this._clientData.username){
-						this.emit("part", {channelName: channel, channel: this._channels[channel]})
-						delete this._channels[channel]
-					}else{
-						this._channels[channel].handlePart(parts)
-					}
-				}else{
-					for(let i=0;i<parts.params.length;i++){
-						if(parts.params[i] === "JOIN"){
-							let channel = parts.params[i+1].split(":")[0].replace(/\r?\n|\r/g, "")
-							this._channels[channel] = new Channel(this._connection, channel)
-							this.emit("join", {channelName: channel, channel: this._channels[channel]})
-						}
-					}
-				}
-
-				
+			if(this._verbose){
+				console.log(message)
 			}
+
+			let channelName = ""
+
+			switch(message.command){
+				case "RPL_WELCOME":
+					let welcomeStringWords = message.args[1].split(/\s+/);
+					this._clientData.hostMask = welcomeStringWords[welcomeStringWords.length - 1]
+					this._clientData.nick = message.args[0]
+
+					this.whois(this._clientData.nick).then(args => {
+						this._clientData.nick = args.nick
+						this._clientData.hostMask = `${args.user}@${args.host}`
+						this._clientData.user = args.user
+
+						this.emit("ready")
+					})
+				break
+				case "PING":
+					this.sendCommand(`PONG ${message.args[0]}\n`)
+				break
+				case "ERR_NICKNAMEINUSE":
+					this._nickMod++
+					this.sendCommand(`NICK ${this._clientData.nick}${this._nickMod}\n`)
+				break
+				case "ERR_ERRONEUSNICKNAME":
+					this.emit("error", message)
+				break
+				case "JOIN":
+					channelName = message.args[0]
+
+					if(message.user === this._clientData.user){
+						
+						if(!this._channels[channelName]){
+							this._channels[channelName] = new Channel(this._connection, channelName)
+						}
+						this.emit("join", {channelName: channelName, channel: this._channels[channelName]})
+					}else{
+						this._channels[channelName].handleRaw(message)
+					}
+				break
+				case "PART":
+					channelName = message.args[0]
+
+					if(message.user === this._clientData.user){
+						
+						this.emit("part", {channelName: channelName, channel: this._channels[channelName]})
+						delete this._channels[channelName]
+					}else{
+						this._channels[channelName].handleRaw(message)
+					}
+				break
+				case "PRIVMSG":
+					if(message.args[0] === this._clientData.nick){
+
+						let user = new User(message.nick, this._connection)
+						user.set("prefix", message.prefix)
+							.set("user", message.user)
+							.set("host", message.host)
+
+						this.emit("message", user, message.args[1])
+					}else{
+						this._channels[message.args[0]].handleRaw(message)
+					}
+				break
+
+				// WHOIS \\
+
+				case "RPL_AWAY":
+					this._addWhois(message.args[1], 'away', message.args[2], true)
+				break
+				case "RPL_WHOISUSER":
+					this._addWhois(message.args[1], 'user', message.args[2])
+					this._addWhois(message.args[1], 'host', message.args[3])
+					this._addWhois(message.args[1], 'realname', message.args[5])
+				break
+				case "RPL_WHOISIDLE":
+					this._addWhois(message.args[1], 'idle', message.args[2])
+				break
+				case "RPL_WHOISCHANNELS":
+					this._addWhois(message.args[1], 'channels', message.args[2].trim().split(/\s+/))
+				break
+				case "RPL_WHOISSERVER":
+					this._addWhois(message.args[1], 'server', message.args[2])
+					this._addWhois(message.args[1], 'serverinfo', message.args[3])
+				break
+				case "RPL_WHOISOPERATOR":
+					this._addWhois(message.args[1], 'operator', message.args[2])
+				break
+				case "330":
+					this._addWhois(message.args[1], 'account', message.args[2])
+					this._addWhois(message.args[1], 'accountinfo', message.args[2])
+				break
+				case "RPL_ENDOFWHOIS":
+					this.emit('whois', this._getWHOIS(message.args[1]))
+				break
+			}
+		})
+
+		// Gets data from net, parses it and emits it
+		this._connection.on('data', (chunk) => {
+
+			let message = ""
+			if(typeof(chunk) === 'string'){
+				buffer += chunk
+			}else{
+				buffer = Buffer.concat([buffer, chunk])
+			}
+
+			let lines = buffer.toString().split(/\r?\n|\r/)
+
+			if(lines.pop()){
+				// if buffer is not ended with \r\n, there's more chunks.
+				return
+			}else{
+				buffer = new Buffer('')
+			}
+
+			let s = this
+
+			lines.forEach(function iterator(line){
+				if(line.length){
+					message = Parser(line)
+					
+					s.emit('raw', message)
+				}
+			})
 		})
 
 		/**
@@ -222,21 +246,35 @@ class Client extends EventEmitter{
 		})
 	}
 
+	_getWHOIS(nick){
+		this._users[nick].addWhois('nick', nick)
+		let whoisData = this._users[nick].whois
+
+		delete this._users[nick]
+
+		return whoisData
+	}
+
+	_addWhois(nick, key, value, onlyIfExists){
+		if(onlyIfExists && !this._users[nick]){
+			return
+		}
+		if(!this._users[nick]){
+			this._users[nick] = new User(nick)
+		}
+
+		this._users[nick].addWhois(key, value)
+	}
+
 	/**
 	 * Sends a raw command to the server
-	 * @privates
+	 * @private
 	 * @function
 	 * @param {String} command - The command to send
 	 * @author Mackan
 	 */
 	sendCommand(command){
 		this._connection.write(command)
-	}
-
-	sendIdent(){
-		this.sendCommand(`PASS ${this._clientData.pass}`)//\nNICK ${this._clientData.nick}\nUSER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
-		//this.sendCommand(`NICK ${this._clientData.nick}\n`)
-		//this.sendCommand(`USER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
 	}
 
 	/**
@@ -282,6 +320,12 @@ class Client extends EventEmitter{
 		}
 	}
 
+	/**
+	 * Sends a quit command to the server
+	 * @function
+	 * @param {?String} message - The message to quit with
+	 * @author Mackan
+	 */
 	quit(message){
 
 		let command = "QUIT"
@@ -294,11 +338,6 @@ class Client extends EventEmitter{
 		this._connection.end()
 	}
 
-	sleep(time){
-		var waitTill = new Date(new Date().getTime() + time * 1000);
-		while(waitTill > new Date()){}
-	}
-
 	/**
 	 * Joins channels
 	 * @function
@@ -307,6 +346,25 @@ class Client extends EventEmitter{
 	 */
 	join(...channels){
 		this.sendCommand(`JOIN ${channels.join(",")}\n`)
+	}
+
+	/**
+	 * Gets the whois of a user
+	 * @function
+	 * @param {String} nick - The user to check
+	 * @returns {Promise.<Object>}
+	 * @author Mackan
+	 */
+	whois(nick){
+		return new Promise((resolve, reject) => {
+			this.once('whois', info => {
+				if(info.nick.toLowerCase() === nick.toLowerCase()){
+					resolve(info)
+				}
+			})
+
+			this.sendCommand(`WHOIS ${nick}\n`)
+		})
 	}
 }
 

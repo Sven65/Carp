@@ -18,58 +18,71 @@ class Channel extends EventEmitter{
 		return this._channelName
 	}
 
-	/**
-	 * Handles user joins
+	/*
+	 * Emits when a user joins the channel
 	 * @event Channel#join
-	 *
-	 * @type {object}
+	 * @type {Object}
 	 * @property {User} user - The user that joined
-	 * @author Mackan
 	 */
-	handleJoin(parts){
-		const user = new User(parts.sender)
+	handleJoin(message){
+		const user = new User(message.nick, this._connection)
 
-		this.emit('join', user)
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
+
+		this.emit("join", user)
 	}
 
 
-	/**
-	 * Handles messages
+	/*
+	 * Emits when the channel revieves a message
 	 * @event Channel#message
-	 *
-	 * @type {object}
-	 * @property {User} sender - The user that sent it
-	 * @property {Array.<string>} - The message params
-	 * @author Mackan
+	 * @type {Object}
+	 * @property {User} user - The user that sent the message
+	 * @property {String} message - The message that was sent
 	 */
-	handleMessage(parts){
+	handleMessage(message){
+		const user = new User(message.nick, this._connection)
 
-		parts.params.shift()
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
 
-		const user = new User(parts.sender)
-
-		parts.params[0] = parts.params[0].replace(":", "")
-		parts.params[parts.params.length-1] = parts.params[parts.params.length-1].replace(/\r?\n|\r/g, "")
-
-		this.emit('message', user, parts.params)
+		this.emit("message", user, message.args[1])
 	}
 
-	/**
-	 * Handles parting
+	handleRaw(message){
+		switch(message.command){
+			case "JOIN":
+				this.handleJoin(message)
+			break
+			case "PART":
+				this.handlePart(message)
+			break
+			case "PRIVMSG":
+				this.handleMessage(message)
+			break
+		}
+	}
+
+	/*
+	 * Emits when a user parts the channel
 	 * @event Channel#part
-	 *
-	 * @type {object}
+	 * @type {Object}
 	 * @property {User} user - The user that parted
-	 * @property {String} message - The parting message
-	 * @author Mackan
+	 * @property {String} message - The message they left with
 	 */
-	handlePart(parts){
+	handlePart(message){
+		message.args.shift()
 
-		parts.params.shift()
+		const user = new User(message.nick, this._connection)
 
-		const user = new User(parts.sender)
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
 
-		this.emit('part', user, parts.params.join(" "))
+		this.emit("part", user, message.args[0])
 	}
 
 	/**
@@ -79,7 +92,6 @@ class Channel extends EventEmitter{
 	 * @author Mackan
 	 */
 	sendMessage(message){
-		//console.log(this._connection)
 		this._connection.write(`PRIVMSG ${this._channelName} :${message}\n`)
 	}
 }

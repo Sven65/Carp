@@ -1,30 +1,68 @@
+/**
+ * @typedef User
+ * @type {Object}
+ * @param {Object} whois - The whois data of the user
+ * @param {String} whois.nick - The nick of the user
+ * @param {?String} whois.away - How long the user has been away
+ * @param {?String} whois.user - The users user ident
+ * @param {?String} whois.host - The users host
+ * @param {?String} whois.realname - The users realname
+ * @param {?Array.<String>} whois.channels - The channels the user is in
+ * @param {?String} whois.server - Server info
+ * @param {?String} whois.serverinfo - Server info
+ * @param {?String} whois.operator - Operator info
+ * @param {?String} whois.account
+ * @param {?String} whois.accountinfo
+ * @param {Object} info - User info on join
+ * @param {String} info.nick - The users nick
+ * @param {?String} info.prefix - The users host
+ * @param {?String} info.user - The users username
+ * @param {?String} info.host - The users hostname
+ */
+
 class User{
 	/**
  	 * Constructs a new user
- 	 * @param {String} userString - The users datastring
+ 	 * @param {String} nick - The users nick
 	 */
-	constructor(userString){
-		let userData = userString.split("!")
+	constructor(nick, connection){
+		this._whois = {
+			nick: nick
+		}
 
-		this._name = userData[0].replace(":", "")
+		this._info = {
+			nick: nick
+		}
 
-		this._hostname = userData[1]
+		this._connection = connection
+	}
+
+
+	addWhois(key, value){
+		this._whois[key] = value
+	}
+
+	get whois(){
+		return this._whois
+	}
+
+	set(name, value){
+		this._info[name] = value
+		return this
+	}
+
+	get info(){
+		return this._info
 	}
 
 	/**
- 	 * Gets the users name
- 	 * @type {String}
+	 * Sends a message to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
 	 */
-	get name(){
-		return this._name
-	}
-
-	/**
-	 * Gets the users hostname
-	 * @type String
-	 */
-	get hostname(){
-		return this._hostname
+	sendMessage(message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :${message}\n`)
 	}
 }
 
