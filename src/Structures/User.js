@@ -64,6 +64,38 @@ class User{
 	sendMessage(message){
 		this._connection.write(`PRIVMSG ${this._info.nick} :${message}\n`)
 	}
+
+	/**
+	 * Sends an action message to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendAction(message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :\u0001ACTION ${message}\u0001\n`)
+	}
+
+	/**
+	 * Sends a CTCP notice to the user
+	 * @function
+	 * @param {String} type - The type to send
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendCTCP(type, message){
+		this._connection.write(`NOTICE ${this._info.nick} :\u0001${type} ${message}\u0001\n`)
+	}
+
+	/**
+	 * Sends a CTCP query to the user
+	 * @function
+	 * @param {String} type - The type to send
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendCTCPQuery(type, message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :\u0001${type} ${message}\u0001\n`)
+	}
 }
 
 module.exports = User

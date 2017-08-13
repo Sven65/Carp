@@ -49,6 +49,8 @@ class Client extends EventEmitter{
 		this._nickMod = 0
 
 		this._users = {}
+
+		this._ctcp = {}
 	}
 
 	/**
@@ -149,6 +151,11 @@ class Client extends EventEmitter{
 					}
 				break
 				case "PRIVMSG":
+					if(message.args[1][0] === '\u0001' && message.args[1].lastIndexOf('\u0001') > 0){
+						this._handleCTCP(message)
+						break
+					}
+
 					if(message.args[0] === this._clientData.nick){
 
 						let user = new User(message.nick, this._connection)
@@ -161,6 +168,33 @@ class Client extends EventEmitter{
 						this._channels[message.args[0]].handleRaw(message)
 					}
 				break
+				case "TOPIC":
+					channelName = message.args[0]
+						
+					if(this._channels[channelName]){
+						this._channels[channelName].handleRaw(message)
+					}
+				break
+				case "KICK":
+					channelName = message.args[0]
+
+					if(this._clientData.nick === message.args[1]){
+						// Client was kicked
+						// channelname, by, reason, channel
+						this.emit("kick", channelName, message.nick, message.args[2], this._channels[channelName])
+						delete this._channels[channelName]
+					}else{
+						this._channels[channelName].handleRaw(message)
+					}
+				break
+				case "RPL_NAMREPLY":
+					channelName = message.args[2]
+					this._channels[channelName].handleRaw(message)
+				break
+				case "RPL_ENDOFNAMES":
+					
+				break
+
 
 				// WHOIS \\
 
@@ -365,6 +399,53 @@ class Client extends EventEmitter{
 
 			this.sendCommand(`WHOIS ${nick}\n`)
 		})
+	}
+
+	/*
+	 * Emits when the client revieves a ctcp message
+	 * @event Client#ctcp
+	 * @type {Object}
+	 * @property {String} from - The nick of the user that sent the message
+	 * @property {String} to - Who the message is for
+	 * @property {String} type - The CTCP command
+	 * @property {?Array.<String>} - Arguments
+	 */
+	_handleCTCP(message){
+		let from = message.nick
+		let to = message.args[0]
+		let user = new User(from, this._connection)
+
+		let text = message.args[1]
+		text = text.slice(1)
+		text = text.slice(0, text.indexOf('\u0001'))
+		let parts = text.split(' ')
+
+		let type = parts[0].toUpperCase()
+		parts.shift()
+
+		if(this._ctcp[type]){
+			if(typeof(this._ctcp[type]) === 'function'){
+				let value = this._ctcp[type].call(this, parts)
+
+				if(typeof(value) !== undefined && typeof(value) !== undefined){
+					user.sendCTCP(type, value)
+				}
+			}else{
+				user.sendCTCP(type, this._ctcp[type])
+			}
+		}
+
+		this.emit('ctcp', from, to, type, parts)
+	}
+
+	/**
+	 * Adds a CTCP response to the client
+	 * @function
+	 * @param {String} name - The ctcp command
+	 * @param {String} value - What to respond with
+	 */
+	addCTCP(name, value){
+		this._ctcp[name.toUpperCase()] = value
 	}
 }
 
