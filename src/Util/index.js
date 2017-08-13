@@ -84,5 +84,9 @@ module.exports = {
 
 	resolveUser(userString){
 		return new User(userString)
+	},
+
+	newLineSplit(message){
+		return message.split(/\r?\n/)
 	}
 }

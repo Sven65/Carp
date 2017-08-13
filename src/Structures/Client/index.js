@@ -74,9 +74,48 @@ class Client extends EventEmitter{
 	addEventListeners(){
 		this._connection.on('data', (data) => {
 
-			let message = data.toString()
+			/* var buffer = new Buffer('');
 
-			//console.log(message+"\n\n")
+			    function handleData(chunk) {
+			        self.conn.cyclingPingTimer.notifyOfActivity();
+
+			        if (typeof (chunk) === 'string') {
+			            buffer += chunk;
+			        } else {
+			            buffer = Buffer.concat([buffer, chunk]);
+			        }
+
+			        var lines = self.convertEncoding(buffer).toString().split(lineDelimiter);
+
+			        if (lines.pop()) {
+			            // if buffer is not ended with \r\n, there's more chunks.
+			            return;
+			        } else {
+			            // else, initialize the buffer.
+			            buffer = new Buffer('');
+			        }
+
+			        lines.forEach(function iterator(line) {
+			            if (line.length) {
+			                var message = parseMessage(line, self.opt.stripColors);
+
+			                try {
+			                    self.emit('raw', message);
+			                } catch (err) {
+			                    if (!self.conn.requestedDisconnect) {
+			                        throw err;
+			                    }
+			                }
+			            }
+			        });
+			    }
+			*/
+
+
+
+			let message = data//.toString()
+
+			console.log(message+"\n\n")
 
 			if(util.isPing(message)){
 				this.sendCommand(`PONG ${util.pingFrom(message)}`)
@@ -91,22 +130,33 @@ class Client extends EventEmitter{
 				
 
 				if(lastCode !== undefined && lastCode !== null){
-					if(lastCode.code === 376){
-						this.emit("ready")
+
+					switch(lastCode.code){
+						case 376:
+							this.emit('ready')
+						break
+						case 451:
+							this.emit('error', 451, 'You have not registered')
+						break
 					}
 				}
 
 
 				let parts = util.splitMessage(message)
 
-				if(parts.command === "NOTICE"){
-					if(parts.params.join(" ").replace(/\r?\n|\r/g, "").toLowerCase() === "* :*** no ident response"){
-						this.emit("ready")
-					}
-				}
+				let newLines = util.newLineSplit(message)
 
 				if(this._verbose){
-					console.log(parts)
+					//console.log(newLines)
+				}
+
+				if(parts.command === "NOTICE"){
+					if(parts.params.join(" ").replace(/\r?\n|\r/g, "").toLowerCase() === "* :*** no ident response"){
+						this.sendIdent()
+						//this.emit("ready")
+					}
+
+
 				}
 
 				if(parts.command === "JOIN"){
@@ -183,6 +233,12 @@ class Client extends EventEmitter{
 		this._connection.write(command)
 	}
 
+	sendIdent(){
+		this.sendCommand(`PASS ${this._clientData.pass}`)//\nNICK ${this._clientData.nick}\nUSER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
+		//this.sendCommand(`NICK ${this._clientData.nick}\n`)
+		//this.sendCommand(`USER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
+	}
+
 	/**
 	 * Connects to a server
 	 * @function
@@ -198,14 +254,18 @@ class Client extends EventEmitter{
 				throw new RangeError("Port must be numeric.")
 			}else{
 				this._connection = net.createConnection(port, address, () => {
+
+					this._connection.setEncoding('utf8')
+
 					console.log(`Connected to ${address}/${port}`)
 					this.addEventListeners()
-					this.emit("connected")
+
 					this.sendCommand(`PASS ${this._clientData.pass}\n`)
 					this.sendCommand(`NICK ${this._clientData.nick}\n`)
 
 					this.sendCommand(`USER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
-					
+
+					this.emit("connected")
 				})
 			}
 		}
