@@ -21,6 +21,7 @@ class Client extends EventEmitter{
 	 * @param {String} options.realname - The realname for the client
 	 * @param {String} options.pass - The pass to use
 	 * @param {String} options.nick - The nick to use, defaults to username
+	 * @param {Boolean} options.verbose - If verbose information should be outputted
 	 */
 	constructor(options={}){
 		super()
@@ -44,7 +45,7 @@ class Client extends EventEmitter{
 
 		this._channels = {}
 
-		this._verbose = true
+		this._verbose = options.verbose||false
 
 		this._nickMod = 0
 

@@ -1,6 +1,10 @@
 # Carp
 A JS IRC library
 
+# More documentation is available as jsdoc
+
+# Example usage:
+
 To connect to a server, create a client using the `Carp.Client` interface;
 
 ```js
