@@ -22,7 +22,7 @@ client.connect("irc.freenode.net", 6667)
 When the client has logged in, join a channel;
 
 ```js
-client.on("login", () => {
+client.on("ready", () => {
 	client.join("#mychannel")
 })
 ```
@@ -34,7 +34,7 @@ client.on("join", (data) => {
 	const channel = data.channel
 
 	channel.on('message', (from, message) => {
-		channel.sendMessage(`${from.name} said ${message}`)
+		channel.sendMessage(`${from.info.nick} said ${message.join(" ")}`)
 	})
 })
 ```
