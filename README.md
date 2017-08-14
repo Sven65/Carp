@@ -1,7 +1,7 @@
 # Carp
 A JS IRC library
 
-# More documentation is available as jsdoc
+# More documentation is available as a JSDoc [here](https://mackan.xyz/Carp)
 
 # Example usage:
 
@@ -30,7 +30,7 @@ client.on("ready", () => {
 When the client joins the channel, you can get the channel and respond to messages;
 
 ```js
-client.on("join", (data) => {
+client.on("join", data => {
 	const channel = data.channel
 
 	channel.on('message', (from, message) => {
