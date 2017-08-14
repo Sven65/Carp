@@ -1,40 +1,31 @@
 # Carp
-A JS IRC library
 
-# More documentation is available as jsdoc
+An IRC Library for Node.js
 
-# Example usage:
+## Example usage
 
-To connect to a server, create a client using the `Carp.Client` interface;
 
-```js
-const client = new Carp.Client({
-	username: "MyBot"
+```javascript
+const Carp = require("carp-irc")
+const Client = new Carp.Client({
+	username: "MyClient"
 })
-```
 
-Then, connect to a server;
+Client.on("ready", () => {
+	console.log("Logged in!")
 
-```js
-client.connect("irc.freenode.net", 6667)
-```
-
-When the client has logged in, join a channel;
-
-```js
-client.on("ready", () => {
-	client.join("#mychannel")
+	Client.join("#myChannel") // Joins the channel "#myChannel"
 })
-```
 
-When the client joins the channel, you can get the channel and respond to messages;
+Client.on("join", joinData => { // When the client joins a channel, catch the event
+	let channelJoined = joinData.channel // Get the channel that was joined
 
-```js
-client.on("join", (data) => {
-	const channel = data.channel
-
-	channel.on('message', (from, message) => {
-		channel.sendMessage(`${from.info.nick} said ${message.join(" ")}`)
+	channelJoined.on("message", (from, message) => { // When the channel gets a message, catch the event
+		if(message === "ping"){ // If the message is "ping"
+			channelJoined.sendMessage(`${from.info.nick} Ping!`) // Send a message to the channel with the users nick and "Ping!"
+		}
 	})
 })
+
+Client.connect("irc.freenode.net") // Connect to the freenode IRC server
 ```
