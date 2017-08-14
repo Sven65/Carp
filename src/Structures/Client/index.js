@@ -2,7 +2,6 @@ const net = require('net')
 const {InvalidError} = require("../../Errors")
 const EventEmitter = require('events')
 const os = require("os")
-const util = require("../../Util")
 
 const Channel = require("../Channel")
 const User = require("../User")
@@ -10,7 +9,10 @@ const User = require("../User")
 const Parser = require("../../Util/ParseMessage")
 
 
-
+/**
+ * New client
+ * @class
+ */
 class Client extends EventEmitter{
 
 	/**
@@ -43,24 +45,56 @@ class Client extends EventEmitter{
 
 		this._connection = null
 
-		this._channels = {}
+		this._channels = new Map()
 
 		this._verbose = options.verbose||false
 
 		this._nickMod = 0
 
-		this._users = {}
+		this._users = new Map()
 
-		this._ctcp = {}
+		this._ctcp = new Map()
+
+		this._supported = {
+			channel: {
+				idLength: [],
+				length: 200,
+				limit: [],
+				modes: {a: '', b: '', c: '', d: ''}
+			},
+			kickLength: 0,
+			maxList: [],
+			maxTargets: [],
+			modes: 3,
+			nickLength: 9,
+			topicLength: 0,
+			usermodes: ''
+		}
+
+		this._prefixForMode = []
+		this._modeForPrefix = []
 	}
 
 	/**
-	 * Adds event listeners to the connection
-	 * @function
-	 * @private
+	 * @type {Map}
 	 */
+	get channels(){
+		return this._channels
+	}
 
-	/*
+	get users(){
+		return this._users
+	}
+
+	/**
+	 * Information about what the server supports
+	 * @type {Object}
+	 */
+	get supported(){
+		return this._supported
+	}
+
+	/**
 	 * Emits when the client is logged in (ready)
 	 * @event Client#ready
 	 * @type {Object}
@@ -75,7 +109,7 @@ class Client extends EventEmitter{
 	 * @property {Channel} data.channel - The channel joined
 	 */
 
-	/*
+	/**
 	 * Emits when the client parts a channel
 	 * @event Client#part
 	 * @type {Object}
@@ -84,12 +118,34 @@ class Client extends EventEmitter{
 	 * @property {Channel} data.channel - The channel joined
 	 */
 
-	/*
+	/**
 	 * Emits when the client revieves a private message
 	 * @event Client#message
 	 * @type {Object}
 	 * @property {User} user - The user that sent the message
 	 * @property {String} message - The message that was sent
+	 */
+
+	 /**
+	 * Emits when a the clients nick is changed
+	 * @event Client#nick
+	 * @type {Object}
+	 * @property {String} oldNick - The old nickname of the user
+	 * @property {String} newNick - The new nickname of the user
+	 */
+
+	/**
+	 * Emits when a the client recieves an invite
+	 * @event Client#invite
+	 * @type {Object}
+	 * @property {String} channelName - The name of the channel the client was invited to
+	 * @property {String} from - The nick of the user that sent the invite
+	 */
+
+	/**
+	 * Adds event listeners to the connection
+	 * @function
+	 * @private
 	 */
 	addEventListeners(){
 
@@ -132,12 +188,12 @@ class Client extends EventEmitter{
 
 					if(message.user === this._clientData.user){
 						
-						if(!this._channels[channelName]){
-							this._channels[channelName] = new Channel(this._connection, channelName)
+						if(!this._channels.get(channelName)){
+							this._channels.set(channelName, new Channel(this._connection, channelName))
 						}
-						this.emit("join", {channelName: channelName, channel: this._channels[channelName]})
+						this.emit("join", {channelName: channelName, channel: this._channels.get(channelName)})
 					}else{
-						this._channels[channelName].handleRaw(message)
+						this._channels.get(channelName).handleRaw(message)
 					}
 				break
 				case "PART":
@@ -145,10 +201,10 @@ class Client extends EventEmitter{
 
 					if(message.user === this._clientData.user){
 						
-						this.emit("part", {channelName: channelName, channel: this._channels[channelName]})
-						delete this._channels[channelName]
+						this.emit("part", {channelName: channelName, channel: this._channels.get(channelName)})
+						this._channels.delete(channelName)
 					}else{
-						this._channels[channelName].handleRaw(message)
+						this._channels.get(channelName).handleRaw(message)
 					}
 				break
 				case "PRIVMSG":
@@ -156,7 +212,6 @@ class Client extends EventEmitter{
 						this._handleCTCP(message)
 						break
 					}
-
 					if(message.args[0] === this._clientData.nick){
 
 						let user = new User(message.nick, this._connection)
@@ -166,14 +221,14 @@ class Client extends EventEmitter{
 
 						this.emit("message", user, message.args[1])
 					}else{
-						this._channels[message.args[0]].handleRaw(message)
+						this._channels.get(message.args[0]).handleRaw(message)
 					}
 				break
 				case "TOPIC":
 					channelName = message.args[0]
 						
-					if(this._channels[channelName]){
-						this._channels[channelName].handleRaw(message)
+					if(this._channels.get(channelName)){
+						this._channels.get(channelName).handleRaw(message)
 					}
 				break
 				case "KICK":
@@ -183,17 +238,109 @@ class Client extends EventEmitter{
 						// Client was kicked
 						// channelname, by, reason, channel
 						this.emit("kick", channelName, message.nick, message.args[2], this._channels[channelName])
-						delete this._channels[channelName]
+						this._channels.delete(channelName)
 					}else{
-						this._channels[channelName].handleRaw(message)
+						this._channels.get(channelName).handleRaw(message)
 					}
 				break
 				case "RPL_NAMREPLY":
 					channelName = message.args[2]
-					this._channels[channelName].handleRaw(message)
+					this._channels.get(channelName).handleRaw(message)
 				break
 				case "RPL_ENDOFNAMES":
 					
+				break
+				case "NICK":
+					if(message.nick === this._clientData.nick){
+						this._clientData.nick = message.args[0]
+						this.emit("nick", message.nick, message.args[0])
+					}else{
+						this._channels.forEach(channel => {
+							if(channel.users.get(message.nick) !== undefined){
+								channel.handleRaw(message)
+							}
+						})
+					}
+				break
+				case "INVITE":
+					self.emit("invite", message.args[1], message.nick)
+				break
+				case "RPL_ISUPPORT":
+					message.args.map(arg => {
+						let match = arg.match(/([A-Z]+)=(.*)/)
+
+						if(match){
+							let param = match[1]
+							let value = match[2]
+
+							switch(param){
+								case "CHANLIMIT":
+									value.split(",").map(val => {
+										val = val.split(":")
+										this._supported.channel.limit[val[0]] = parseInt(val[1])
+									})
+								break
+								case "CHANMODES":
+									value = value.split(",")
+									let type = "abcd".split("")
+
+									for(let i=0;i<type.length;i++){
+										this._supported.channel.modes[type[i]] += value[i]
+									}
+								break
+								case "CHANTYPES":
+									this._supported.channel.types = value
+								break
+								case "CHANNELLEN":
+									this._supported.channel.length = parseInt(value)
+								break
+								case "IDCHAN":
+									value.split(",").each(val => {
+										val = val.split(":")
+										this._supported.channel.idLength[value[0]] = val[1]
+									})
+								break
+								case "KICKLEN":
+									this._supported.kickLength = value
+								break
+								case "MAXLIST":
+									value.split(',').map(val => {
+										val = val.split(':')
+										this._supported.maxList[val[0]] = parseInt(val[1])
+									})
+								break
+								case "NICKLEN":
+									this._supported.nickLength = parseInt(value)
+								break
+								case "PREFIX":
+									match = value.match(/\((.*?)\)(.*)/)
+									if(match){
+										match[1] = match[1].split('')
+										match[2] = match[2].split('')
+										while(match[1].length){
+											this._modeForPrefix[match[2][0]] = match[1][0]
+											this._supported.channel.modes.b += match[1][0]
+											this._prefixForMode[match[1].shift()] = match[2].shift()
+										}
+									}
+								break
+								case "STATUSMSG":
+
+								break
+								case "TARGMAX":
+									value.split(",").map(val => {
+										val = val.split(":")
+										val[1] = (!val[1])?0:parseInt(val[1])
+
+										this._supported.maxTargets[val[0]] = val[1]
+									})
+								break
+								case "TOPICLEN":
+									this._supported.topicLength = parseInt(value)
+								break
+							}
+						}
+					})
 				break
 
 
@@ -282,23 +429,23 @@ class Client extends EventEmitter{
 	}
 
 	_getWHOIS(nick){
-		this._users[nick].addWhois('nick', nick)
-		let whoisData = this._users[nick].whois
+		this._users.get(nick).addWhois('nick', nick)
+		let whoisData = this._users.get(nick).whois
 
-		delete this._users[nick]
+		this._users.delete(nick)
 
 		return whoisData
 	}
 
 	_addWhois(nick, key, value, onlyIfExists){
-		if(onlyIfExists && !this._users[nick]){
+		if(onlyIfExists && !this._users.get(nick)){
 			return
 		}
-		if(!this._users[nick]){
-			this._users[nick] = new User(nick)
+		if(!this._users.get(nick)){
+			this._users.set(nick, new User(nick))
 		}
 
-		this._users[nick].addWhois(key, value)
+		this._users.get(nick).addWhois(key, value)
 	}
 
 	/**
@@ -376,7 +523,7 @@ class Client extends EventEmitter{
 	/**
 	 * Joins channels
 	 * @function
-	 * @param {String} channel - The channel to join
+	 * @param {...String} channel - The channel to join
 	 * @author Mackan
 	 */
 	join(...channels){
@@ -424,15 +571,15 @@ class Client extends EventEmitter{
 		let type = parts[0].toUpperCase()
 		parts.shift()
 
-		if(this._ctcp[type]){
-			if(typeof(this._ctcp[type]) === 'function'){
-				let value = this._ctcp[type].call(this, parts)
+		if(this._ctcp.get(type)){
+			if(typeof(this._ctcp.get(type)) === 'function'){
+				let value = this._ctcp.get(type).call(this, parts)
 
 				if(typeof(value) !== undefined && typeof(value) !== undefined){
 					user.sendCTCP(type, value)
 				}
 			}else{
-				user.sendCTCP(type, this._ctcp[type])
+				user.sendCTCP(type, this._ctcp.get(type))
 			}
 		}
 
@@ -446,7 +593,7 @@ class Client extends EventEmitter{
 	 * @param {String} value - What to respond with
 	 */
 	addCTCP(name, value){
-		this._ctcp[name.toUpperCase()] = value
+		this._ctcp.set(name.toUpperCase(), value)
 	}
 }
 

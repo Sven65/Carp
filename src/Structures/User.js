@@ -42,6 +42,10 @@ class User{
 		this._whois[key] = value
 	}
 
+	/**
+	 * Gets the users whois data
+	 * @type {Object}
+	 */
 	get whois(){
 		return this._whois
 	}
@@ -51,6 +55,10 @@ class User{
 		return this
 	}
 
+	/**
+	 * Gets the users info
+	 * @type {Object}
+	 */
 	get info(){
 		return this._info
 	}
