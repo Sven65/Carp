@@ -6,6 +6,8 @@ const os = require("os")
 const Channel = require("../Channel")
 const User = require("../User")
 
+const NickServ = require('../NickServ')
+
 const Parser = require("../../Util/ParseMessage")
 
 
@@ -73,6 +75,8 @@ class Client extends EventEmitter{
 
 		this._prefixForMode = []
 		this._modeForPrefix = []
+
+		this._nickServ = null
 	}
 
 	/**
@@ -92,6 +96,10 @@ class Client extends EventEmitter{
 	 */
 	get supported(){
 		return this._supported
+	}
+
+	get NickServ(){
+		return this._nickServ
 	}
 
 	/**
@@ -170,7 +178,8 @@ class Client extends EventEmitter{
 						this._clientData.hostMask = `${args.user}@${args.host}`
 						this._clientData.user = args.user
 
-						this.emit("ready")
+						this.emit("ready")	
+
 					})
 				break
 				case "PING":
@@ -224,6 +233,17 @@ class Client extends EventEmitter{
 						this._channels.get(message.args[0]).handleRaw(message)
 					}
 				break
+				case "NOTICE":
+					if(message.user === "NickServ"){
+						if(this._nickServ === null){
+							this._nickServ = new NickServ(this._connection, this._clientData.nick)
+						}
+
+						if(this._nickServ !== null){
+							this._nickServ.handleRaw(message)
+						}
+					}
+				break
 				case "TOPIC":
 					channelName = message.args[0]
 						
@@ -253,6 +273,9 @@ class Client extends EventEmitter{
 				case "NICK":
 					if(message.nick === this._clientData.nick){
 						this._clientData.nick = message.args[0]
+						if(this._nickServ !== null){
+							this._nickServ.nick = message.args[0]
+						}
 						this.emit("nick", message.nick, message.args[0])
 					}else{
 						this._channels.forEach(channel => {
