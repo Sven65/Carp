@@ -13,6 +13,9 @@ class Channel extends EventEmitter{
 		this._channelName = channelName
 
 		this._users = new Map()
+
+		this._mode = ""
+		this._modeParams = {}
 	}
 
 	/**
@@ -21,6 +24,22 @@ class Channel extends EventEmitter{
 	 */
 	get name(){
 		return this._channelName
+	}
+
+	/**
+	 * The mode of the channel
+	 * @type {String}
+	 */
+	get mode(){
+		return this._mode
+	}
+
+	/**
+	 * The channels mode params
+	 * @type {Object}
+	 */
+	get modeParams(){
+		return this._modeParams
 	}
 
 	/**
@@ -37,6 +56,33 @@ class Channel extends EventEmitter{
 	 */
 	get users(){
 		return this._users
+	}
+
+	/**
+	 * Adds a mode
+	 * @function
+	 * @param {String} mode - The mode to add
+	 */
+	addMode(mode){
+		this._mode += mode
+	}
+
+	/**
+	 * Sets the mode of the channel
+	 * @param {String} mode - The mode to set
+	 */
+	setMode(mode){
+		this._mode = mode
+	}
+
+	/**
+	 * Sets a mode param
+	 * @function
+	 * @param {String} name - The name to set
+	 * @param {String} value - The value to set
+	 */ 
+	setModeParam(name, value){
+		this._modeParams[name] = value
 	}
 
 	handleTopic(message){
@@ -116,6 +162,59 @@ class Channel extends EventEmitter{
 			case "NICK":
 				this.handleNick(message)
 			break
+			case "MODE":
+				this.handleMode(message)
+			break
+		}
+	}
+
+	/**
+	 * Emits when the a user in the channel gets their modes updated
+	 * @event Channel#+mode
+	 * @type {Object}
+	 * @property {Object} data - The data of the event
+	 * @property {User} data.user - The user that was updated
+	 * @property {String} data.from - The nick of the user that updated the mode
+	 * @property {Array.<String>} data.modes - The modes that was added
+	 */
+
+	 /**
+	 * Emits when the a user in the channel gets their modes updated
+	 * @event Channel#-mode
+	 * @type {Object}
+	 * @property {Object} data - The data of the event
+	 * @property {User} data.user - The user that was updated
+	 * @property {String} data.from - The nick of the user that updated the mode
+	 * @property {Array.<String>} data.modes - The modes that was removed
+	 */
+	handleMode(message){
+		console.log(message)
+
+		let split = message.args[1].split("")
+
+		let action = split[0]
+
+		split.shift()
+
+		if(args[2] !== undefined){
+
+			let user = this._users.get(args[2])
+
+			if(action === "+"){
+				split.map(mode => {
+					user.addMode(mode)
+				})
+			}else if(action === "-"){
+				split.map(mode => {
+					user.removeMode(mode)
+				})
+			}
+
+			this.emit(`${action}mode`, {
+				user: user,
+				from: message.nick,
+				modes: split
+			})
 		}
 	}
 
@@ -196,6 +295,16 @@ class Channel extends EventEmitter{
 	 */
 	sendAction(message){
 		this._connection.write(`PRIVMSG ${this._channelName} :\u0001ACTION ${message}\u0001\n`)
+	}
+
+	/**
+	 * Updates the modes of a user in the channel
+	 * @function
+	 * @param {String} nick - The nickname of the user to update the modes for
+	 * @param {String} mode - What modes to add
+	 */
+	mode(nick, mode){
+		this.sendCommand(`MODE ${this._channelName} ${this._clientData.nick} ${mode}\n`)
 	}
 }
 

@@ -35,6 +35,8 @@ class User{
 		}
 
 		this._connection = connection
+
+		this._modes = []
 	}
 
 
@@ -48,6 +50,35 @@ class User{
 	 */
 	get whois(){
 		return this._whois
+	}
+
+	/**
+	 * Gets the users modes
+	 * @type {?Array.<String>}
+	 */
+	get modes(){
+		return this._modes
+	}
+
+	/**
+	 * Adds a mode to the user
+	 * @function
+	 * @param {String} mode - The mode to add
+	 */
+	addMode(mode){
+		this._modes.push(mode)
+	}
+
+	/**
+	 * Removes a mode from the user
+	 * @function
+	 * @param {String} mode - The mode to remove
+	 */
+	removeMode(mode){
+		let index = this._modes.indexOf(mode)
+		if(index > -1){
+			this._modes.splice(index, 1)
+		}
 	}
 
 	set(name, value){

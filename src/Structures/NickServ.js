@@ -15,18 +15,21 @@ class NickServ extends EventEmitter{
 		this._connection.write(`PRIVMSG NickServ :IDENTIFY ${nick===null?'':nick} ${pass}\n`)
 	}
 
+
 	handleRaw(message){
 		if(message.command === "NOTICE"){
 
 			let split = message.args[1].split(" ")
 
-			console.log("SPLIT", split)
-			console.log("NICK", this._nick)
+			//console.log("MSG", message)
+
+			//console.log("SPLIT", split)
+			//console.log("NICK", this._nick)
 
 			if(split[1] === "ACC"){
 				this.emit('acc', message.args[1].split(" "))
-			}else if(split[0] === this._nick){
-				console.log("SPLIT2", split)
+			}else if(message.args[0] === this._nick){
+				
 			}
 		}
 	}
@@ -43,7 +46,7 @@ class NickServ extends EventEmitter{
 	acc(nick){
 		return new Promise((resolve, reject) => {
 			this.once('acc', info => {
-				resolve(info)
+				resolve(parseInt(info[2]))
 			})
 
 			this._connection.write(`PRIVMSG NickServ :ACC ${nick}\n`)

@@ -77,6 +77,15 @@ class Client extends EventEmitter{
 		this._modeForPrefix = []
 
 		this._nickServ = null
+
+		this._modes = ''
+	}
+
+	/**
+	 * @type {Object}
+	 */
+	get info(){
+		return this._clientData
 	}
 
 	/**
@@ -148,6 +157,20 @@ class Client extends EventEmitter{
 	 * @type {Object}
 	 * @property {String} channelName - The name of the channel the client was invited to
 	 * @property {String} from - The nick of the user that sent the invite
+	 */
+
+	/**
+	 * Emits when the client gets their modes updated
+	 * @event Client#+mode
+	 * @type {Object}
+	 * @property {Array.<String>} modes - The modes that were addded
+	 */
+
+	/**
+	 * Emits when the client gets their modes updated
+	 * @event Client#-mode
+	 * @type {Object}
+	 * @property {Array.<String>} modes - The modes that were removed
 	 */
 
 	/**
@@ -286,7 +309,35 @@ class Client extends EventEmitter{
 					}
 				break
 				case "INVITE":
-					self.emit("invite", message.args[1], message.nick)
+					this.emit("invite", message.args[1], message.nick)
+				break
+				case "MODE":
+					if(message.nick === this._clientData.nick){
+
+						let split = message.args[1].split("")
+
+						let action = split[0]
+
+						split.shift()
+
+						if(action === "+"){
+							this._modes += split.join("")
+						}else if(action === "-"){
+							split.map(mode => {
+								this._modes = this._modes.replace(mode, "")
+							})
+						}
+
+						this.emit(`${action}mode`, split)
+					}else{
+						channelName = message.args[0]
+
+						let channel = this._channels.get(channelName)
+
+						if(channel !== undefined){
+							channel.handleRaw(message)
+						}
+					}
 				break
 				case "RPL_ISUPPORT":
 					message.args.map(arg => {
@@ -617,6 +668,15 @@ class Client extends EventEmitter{
 	 */
 	addCTCP(name, value){
 		this._ctcp.set(name.toUpperCase(), value)
+	}
+
+	/**
+	 * Updates the modes of the client
+	 * @function
+	 * @param {String} mode - What modes to update
+	 */
+	mode(mode){
+		this.sendCommand(`MODE ${this._clientData.nick} ${mode}\n`)
 	}
 }
 
