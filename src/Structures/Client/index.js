@@ -1,7 +1,6 @@
 const net = require('net')
 const {InvalidError} = require("../../Errors")
 const EventEmitter = require('events')
-const os = require("os")
 
 const Channel = require("../Channel")
 const User = require("../User")
@@ -245,6 +244,7 @@ class Client extends EventEmitter{
 				case "PRIVMSG":
 					if(message.args[1][0] === '\u0001' && message.args[1].lastIndexOf('\u0001') > 0){
 						this._handleCTCP(message)
+						this.emit("CTCP", message)
 						break
 					}
 					if(message.args[0] === this._clientData.nick){
@@ -705,6 +705,16 @@ class Client extends EventEmitter{
 	 */
 	mode(mode){
 		this.sendCommand(`MODE ${this._clientData.nick} ${mode}\n`)
+	}
+
+	/**
+	 * Sends a notice to a user
+	 * @function
+	 * @param {String} nick - The nick of the user to send the message to
+	 * @param {String} message - The message to send
+	 */
+	notice(nick, message){
+		this.sendCommand(`NOTICE ${nick} ${message}\n`)
 	}
 }
 

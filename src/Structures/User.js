@@ -135,6 +135,15 @@ class User{
 	sendCTCPQuery(type, message){
 		this._connection.write(`PRIVMSG ${this._info.nick} :\u0001${type} ${message}\u0001\n`)
 	}
+
+	/**
+	 * Sends a notice to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 */
+	notice(message){
+		this._connection.write(`NOTICE ${this._info.nick} :${message}\n`)
+	}
 }
 
 module.exports = User

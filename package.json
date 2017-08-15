@@ -1,7 +1,7 @@
 {
   "name": "carp-irc",
-  "version": "1.0.2",
-  "description": "An irc library",
+  "version": "1.0.3",
+  "description": "An extensive irc library for node.js.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -18,7 +18,13 @@
     "chat",
     "internet",
     "relay",
-    "chat"
+    "chat",
+    "dcc",
+    "irc-files",
+    "files",
+    "send",
+    "ctcp",
+    "XDCC"
   ],
   "author": "Mackan",
   "license": "Apache-2.0",
