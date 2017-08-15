@@ -512,5 +512,9 @@ module.exports = {
 	502: {
 		name: "ERR_USERSDONTMATCH",
 		type: "ERROR"
+	},
+	904: {
+		name: "ERR_SASLFAIL",
+		type: "ERROR"
 	}
 }

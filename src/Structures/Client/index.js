@@ -26,6 +26,7 @@ class Client extends EventEmitter{
 	 * @param {String} options.pass - The pass to use
 	 * @param {String} options.nick - The nick to use, defaults to username
 	 * @param {Boolean} options.verbose - If verbose information should be outputted
+	 * @param {Boolean} options.sasl - If the client should authenticate with SASL 
 	 */
 	constructor(options={}){
 		super()
@@ -56,6 +57,8 @@ class Client extends EventEmitter{
 		this._users = new Map()
 
 		this._ctcp = new Map()
+
+		this._sasl = options.sasl||false
 
 		this._supported = {
 			channel: {
@@ -417,6 +420,27 @@ class Client extends EventEmitter{
 					})
 				break
 
+				// SASL \\
+
+				case "CAP":
+					if(message.args[0] === "*" && message.args[1] === "ACK" && message.args[2] === "sasl "){
+						this.sendCommand("AUTHENTICATE PLAIN\n")
+					}
+				break
+				case "AUTHENTICATE":
+					if(message.args[0] === '+'){
+						let userString = new Buffer(`${this._clientData.nick}\0${this._clientData.username}\n${this._clientData.pass}`).toString("base64")
+
+						this.sendCommand(`AUTHENTICATE ${userString}\n`)
+					}
+				break
+				case "903":
+					this.sendCommand(`CAP END\n`)
+				break
+				case "ERR_SASLFAIL":
+					this.emit("error", "SASL Authentication failed")
+				break
+
 
 				// WHOIS \\
 
@@ -554,7 +578,11 @@ class Client extends EventEmitter{
 					console.log(`Connected to ${address}/${port}`)
 					this.addEventListeners()
 
-					this.sendCommand(`PASS ${this._clientData.pass}\n`)
+					if(this._sasl){
+						this.sendCommand(`CAP REQ :sasl\n`)
+					}else{
+						this.sendCommand(`PASS ${this._clientData.pass}\n`)
+					}
 					this.sendCommand(`NICK ${this._clientData.nick}\n`)
 
 					this.sendCommand(`USER ${this._clientData.username} 0 * ${this._clientData.realname}\n`)
