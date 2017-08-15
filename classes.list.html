@@ -33,14 +33,14 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="global.html#User">User</a></li>
+					<li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="DCC.html">DCC</a></li><li><a href="global.html#User">User</a></li>
 				</ul>
 			</li>
 			
 			<li class="dropdown">
 				<a href="events.list.html" class="dropdown-toggle" data-toggle="dropdown">Events<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Channel.html#event:join">Channel#event:join</a></li><li><a href="Channel.html#event:kick">Channel#event:kick</a></li><li><a href="Channel.html#event:message">Channel#event:message</a></li><li><a href="Channel.html#event:nick">Channel#event:nick</a></li><li><a href="Channel.html#event:part">Channel#event:part</a></li><li><a href="Client.html#event:disconnected">Client#event:disconnected</a></li><li><a href="Client.html#event:error">Client#event:error</a></li><li><a href="Client.html#event:invite">Client#event:invite</a></li><li><a href="Client.html#event:message">Client#event:message</a></li><li><a href="Client.html#event:nick">Client#event:nick</a></li><li><a href="Client.html#event:part">Client#event:part</a></li><li><a href="Client.html#event:ready">Client#event:ready</a></li>
+					<li><a href="Channel.html#event:+mode">Channel#event:+mode</a></li><li><a href="Channel.html#event:-mode">Channel#event:-mode</a></li><li><a href="Channel.html#event:join">Channel#event:join</a></li><li><a href="Channel.html#event:kick">Channel#event:kick</a></li><li><a href="Channel.html#event:message">Channel#event:message</a></li><li><a href="Channel.html#event:nick">Channel#event:nick</a></li><li><a href="Channel.html#event:part">Channel#event:part</a></li><li><a href="Client.html#event:+mode">Client#event:+mode</a></li><li><a href="Client.html#event:-mode">Client#event:-mode</a></li><li><a href="Client.html#event:disconnected">Client#event:disconnected</a></li><li><a href="Client.html#event:error">Client#event:error</a></li><li><a href="Client.html#event:invite">Client#event:invite</a></li><li><a href="Client.html#event:message">Client#event:message</a></li><li><a href="Client.html#event:nick">Client#event:nick</a></li><li><a href="Client.html#event:part">Client#event:part</a></li><li><a href="Client.html#event:ready">Client#event:ready</a></li>
 				</ul>
 			</li>
 			
@@ -155,6 +155,9 @@
             <dt><a href="Client.html">Client</a></dt>
             <dd></dd>
         
+            <dt><a href="DCC.html">DCC</a></dt>
+            <dd></dd>
+        
             <dt><a href="global.html#User">User</a></dt>
             <dd></dd>
         </dl>
@@ -174,6 +177,474 @@
         <h3 class="subsection-title">Events</h3>
 
         <dl>
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:+mode">+mode</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Emits when the a user in the channel gets their modes updated
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">Object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The data of the event
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>user</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#User">User</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The user that was updated</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>from</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The nick of the user that updated the mode</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The modes that was added</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:-mode">-mode</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Emits when the a user in the channel gets their modes updated
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">Object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The data of the event
+                <h6>Properties</h6>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>user</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#User">User</a></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The user that was updated</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>from</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The nick of the user that updated the mode</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>modes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The modes that was removed</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
             
 <hr>
 <dt>
@@ -942,6 +1413,280 @@
             
 
             <td class="description last">The message they left with</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:+mode">+mode</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Emits when the client gets their modes updated
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">Object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>modes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The modes that were addded</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+</dl>
+
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:-mode">-mode</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Emits when the client gets their modes updated
+    </div>
+    
+
+    
+
+    
+        <h5>Type: 
+<span class="param-type">Object</span>
+
+
+</h5>
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    <dl>
+
+<table class="props table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>modes</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The modes that were removed</td>
         </tr>
 
     
@@ -2043,7 +2788,7 @@
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on 2017-08-14T12:41:02+02:00
+		on 2017-08-15T14:54:01+02:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>

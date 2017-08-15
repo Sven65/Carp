@@ -33,14 +33,14 @@
 			<li class="dropdown">
 				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="global.html#User">User</a></li>
+					<li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="DCC.html">DCC</a></li><li><a href="global.html#User">User</a></li>
 				</ul>
 			</li>
 			
 			<li class="dropdown">
 				<a href="events.list.html" class="dropdown-toggle" data-toggle="dropdown">Events<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="Channel.html#event:join">Channel#event:join</a></li><li><a href="Channel.html#event:kick">Channel#event:kick</a></li><li><a href="Channel.html#event:message">Channel#event:message</a></li><li><a href="Channel.html#event:nick">Channel#event:nick</a></li><li><a href="Channel.html#event:part">Channel#event:part</a></li><li><a href="Client.html#event:disconnected">Client#event:disconnected</a></li><li><a href="Client.html#event:error">Client#event:error</a></li><li><a href="Client.html#event:invite">Client#event:invite</a></li><li><a href="Client.html#event:message">Client#event:message</a></li><li><a href="Client.html#event:nick">Client#event:nick</a></li><li><a href="Client.html#event:part">Client#event:part</a></li><li><a href="Client.html#event:ready">Client#event:ready</a></li>
+					<li><a href="Channel.html#event:+mode">Channel#event:+mode</a></li><li><a href="Channel.html#event:-mode">Channel#event:-mode</a></li><li><a href="Channel.html#event:join">Channel#event:join</a></li><li><a href="Channel.html#event:kick">Channel#event:kick</a></li><li><a href="Channel.html#event:message">Channel#event:message</a></li><li><a href="Channel.html#event:nick">Channel#event:nick</a></li><li><a href="Channel.html#event:part">Channel#event:part</a></li><li><a href="Client.html#event:+mode">Client#event:+mode</a></li><li><a href="Client.html#event:-mode">Client#event:-mode</a></li><li><a href="Client.html#event:disconnected">Client#event:disconnected</a></li><li><a href="Client.html#event:error">Client#event:error</a></li><li><a href="Client.html#event:invite">Client#event:invite</a></li><li><a href="Client.html#event:message">Client#event:message</a></li><li><a href="Client.html#event:nick">Client#event:nick</a></li><li><a href="Client.html#event:part">Client#event:part</a></li><li><a href="Client.html#event:ready">Client#event:ready</a></li>
 				</ul>
 			</li>
 			
@@ -312,6 +312,77 @@
         
             
 <hr>
+<dt class="name" id="modes">
+    <h4 id="modes"><span class="type-signature">&lt;nullable> </span>modes<span class="type-signature"> :Array.&lt;String></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        Gets the users modes
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
 <dt class="name" id="whois">
     <h4 id="whois"><span class="type-signature"></span>whois<span class="type-signature"> :Object</span></h4>
 
@@ -387,6 +458,390 @@
         <h3 class="subsection-title">Methods</h3>
 
         <dl>
+            
+<hr>
+<dt>
+    <h4 class="name" id="addMode"><span class="type-signature"></span>addMode(mode)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Adds a mode to the user
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The mode to add</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="notice"><span class="type-signature"></span>notice(message)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Sends a notice to the user
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The message to send</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="removeMode"><span class="type-signature"></span>removeMode(mode)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Removes a mode from the user
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The mode to remove</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
             
 <hr>
 <dt>
@@ -1024,7 +1479,7 @@
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 	
-		on 2017-08-14T12:41:02+02:00
+		on 2017-08-15T14:54:01+02:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
