@@ -21,15 +21,8 @@ class NickServ extends EventEmitter{
 
 			let split = message.args[1].split(" ")
 
-			//console.log("MSG", message)
-
-			//console.log("SPLIT", split)
-			//console.log("NICK", this._nick)
-
 			if(split[1] === "ACC"){
 				this.emit('acc', message.args[1].split(" "))
-			}else if(message.args[0] === this._nick){
-				
 			}
 		}
 	}
