@@ -5,12 +5,6 @@
 	"opts": {
 		"destination": "./Docs/",
 		"recurse": true,
-		"template": "./node_modules/ink-docstrap/template",
 		"readme": "./Docs/README.md"
-	},
-	"templates": {
-		"linenums": true,
-		"syntaxTheme": "dark",
-		"theme": "slate"
-	}
+	}	
 }
