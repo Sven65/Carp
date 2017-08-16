@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Global</title>
+    <title>JSDoc: Source: NickServ.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,162 +17,69 @@
 
 <div id="main">
 
-    <h1 class="page-title">Global</h1>
+    <h1 class="page-title">Source: NickServ.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-        <h2></h2>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Type Definitions</h3>
-
-        
-                
-<h4 class="name" id="User">User</h4>
-
-
-
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="User.js.html">User.js</a>, <a href="User.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-    
-
-    
-</article>
-
-</section>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const EventEmitter = require('events')
+
+class NickServ extends EventEmitter{
+	constructor(connection, nick){
+		super()
+		this._connection = connection
+		this._nick = nick
+	}
+
+	set nick(nick){
+		this._nick = nick
+	}
+
+	identify(nick, pass){
+		this._connection.write(`PRIVMSG NickServ :IDENTIFY ${nick===null?'':nick} ${pass}\n`)
+	}
+
+
+	handleRaw(message){
+		if(message.command === "NOTICE"){
+
+			let split = message.args[1].split(" ")
+
+			if(split[1] === "ACC"){
+				this.emit('acc', message.args[1].split(" "))
+			}
+		}
+	}
+
+	/**
+	 * Gets parsable information about a users login status
+	 * @function
+	 * @returns {Promise.&lt;Number>} status - The users login status
+	 * 0 - Account or user does not exist
+	 * 1 - Account exists but user is not logged in
+	 * 2 - User is not logged in but recognized
+	 * 3 - User is logged in
+	 */
+	acc(nick){
+		return new Promise((resolve, reject) => {
+			this.once('acc', info => {
+				resolve(parseInt(info[2]))
+			})
+
+			this._connection.write(`PRIVMSG NickServ :ACC ${nick}\n`)
+		})
+	}
+
+
+}
+
+module.exports = NickServ</code></pre>
+        </article>
+    </section>
 
 
 
