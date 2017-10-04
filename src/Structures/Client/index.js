@@ -97,6 +97,9 @@ class Client extends EventEmitter{
 		return this._channels
 	}
 
+	/**
+	 * @type [Map]
+	 */
 	get users(){
 		return this._users
 	}
@@ -109,6 +112,9 @@ class Client extends EventEmitter{
 		return this._supported
 	}
 
+	/**
+	 * @type {?NickServ}
+	 */
 	get NickServ(){
 		return this._nickServ
 	}
@@ -174,6 +180,84 @@ class Client extends EventEmitter{
 	 * @type {Object}
 	 * @property {Array.<String>} modes - The modes that were removed
 	 */
+
+	 _handleRPLSupport(message){
+	 	message.args.map(arg => {
+	 		let match = arg.match(/([A-Z]+)=(.*)/)
+
+	 		if(match){
+	 			let param = match[1]
+	 			let value = match[2]
+
+	 			switch(param){
+	 				case "CHANLIMIT":
+	 					value.split(",").map(val => {
+	 						val = val.split(":")
+	 						this._supported.channel.limit[val[0]] = parseInt(val[1])
+	 					})
+	 				break
+	 				case "CHANMODES":
+						value = value.split(",")
+						let type = "abcd".split("")
+
+						for(let i=0;i<type.length;i++){
+							this._supported.channel.modes[type[i]] += value[i]
+						}
+					break
+					case "CHANTYPES":
+						this._supported.channel.types = value
+					break
+					case "CHANNELLEN":
+						this._supported.channel.length = parseInt(value)
+					break
+					case "IDCHAN":
+						value.split(",").each(val => {
+							val = val.split(":")
+							this._supported.channel.idLength[value[0]] = val[1]
+						})
+					break
+					case "KICKLEN":
+						this._supported.kickLength = value
+					break
+					case "MAXLIST":
+						value.split(',').map(val => {
+							val = val.split(':')
+							this._supported.maxList[val[0]] = parseInt(val[1])
+						})
+					break
+					case "NICKLEN":
+						this._supported.nickLength = parseInt(value)
+					break
+					case "PREFIX":
+						match = value.match(/\((.*?)\)(.*)/)
+						if(match){
+							match[1] = match[1].split('')
+							match[2] = match[2].split('')
+							while(match[1].length){
+								this._modeForPrefix[match[2][0]] = match[1][0]
+								this._supported.channel.modes.b += match[1][0]
+								this._prefixForMode[match[1].shift()] = match[2].shift()
+							}
+						}
+					break
+					case "STATUSMSG":
+
+					break
+					case "TARGMAX":
+						value.split(",").map(val => {
+							val = val.split(":")
+							val[1] = (!val[1])?0:parseInt(val[1])
+
+							this._supported.maxTargets[val[0]] = val[1]
+						})
+					break
+					case "TOPICLEN":
+						this._supported.topicLength = parseInt(value)
+					break
+	 			}
+	 		}
+	 	})
+	 }
 
 	/**
 	 * Adds event listeners to the connection
@@ -343,81 +427,7 @@ class Client extends EventEmitter{
 					}
 				break
 				case "RPL_ISUPPORT":
-					message.args.map(arg => {
-						let match = arg.match(/([A-Z]+)=(.*)/)
-
-						if(match){
-							let param = match[1]
-							let value = match[2]
-
-							switch(param){
-								case "CHANLIMIT":
-									value.split(",").map(val => {
-										val = val.split(":")
-										this._supported.channel.limit[val[0]] = parseInt(val[1])
-									})
-								break
-								case "CHANMODES":
-									value = value.split(",")
-									let type = "abcd".split("")
-
-									for(let i=0;i<type.length;i++){
-										this._supported.channel.modes[type[i]] += value[i]
-									}
-								break
-								case "CHANTYPES":
-									this._supported.channel.types = value
-								break
-								case "CHANNELLEN":
-									this._supported.channel.length = parseInt(value)
-								break
-								case "IDCHAN":
-									value.split(",").each(val => {
-										val = val.split(":")
-										this._supported.channel.idLength[value[0]] = val[1]
-									})
-								break
-								case "KICKLEN":
-									this._supported.kickLength = value
-								break
-								case "MAXLIST":
-									value.split(',').map(val => {
-										val = val.split(':')
-										this._supported.maxList[val[0]] = parseInt(val[1])
-									})
-								break
-								case "NICKLEN":
-									this._supported.nickLength = parseInt(value)
-								break
-								case "PREFIX":
-									match = value.match(/\((.*?)\)(.*)/)
-									if(match){
-										match[1] = match[1].split('')
-										match[2] = match[2].split('')
-										while(match[1].length){
-											this._modeForPrefix[match[2][0]] = match[1][0]
-											this._supported.channel.modes.b += match[1][0]
-											this._prefixForMode[match[1].shift()] = match[2].shift()
-										}
-									}
-								break
-								case "STATUSMSG":
-
-								break
-								case "TARGMAX":
-									value.split(",").map(val => {
-										val = val.split(":")
-										val[1] = (!val[1])?0:parseInt(val[1])
-
-										this._supported.maxTargets[val[0]] = val[1]
-									})
-								break
-								case "TOPICLEN":
-									this._supported.topicLength = parseInt(value)
-								break
-							}
-						}
-					})
+					this._handleRPLSupport(message)
 				break
 
 				// SASL \\
