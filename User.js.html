@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: User.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: User.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @typedef User
+ * @type {Object}
+ * @param {Object} whois - The whois data of the user
+ * @param {String} whois.nick - The nick of the user
+ * @param {?String} whois.away - How long the user has been away
+ * @param {?String} whois.user - The users user ident
+ * @param {?String} whois.host - The users host
+ * @param {?String} whois.realname - The users realname
+ * @param {?Array.&lt;String>} whois.channels - The channels the user is in
+ * @param {?String} whois.server - Server info
+ * @param {?String} whois.serverinfo - Server info
+ * @param {?String} whois.operator - Operator info
+ * @param {?String} whois.account
+ * @param {?String} whois.accountinfo
+ * @param {Object} info - User info on join
+ * @param {String} info.nick - The users nick
+ * @param {?String} info.prefix - The users host
+ * @param {?String} info.user - The users username
+ * @param {?String} info.host - The users hostname
+ */
+
+class User{
+	/**
+ 	 * Constructs a new user
+ 	 * @param {String} nick - The users nick
+	 */
+	constructor(nick, connection){
+		this._whois = {
+			nick: nick
+		}
+
+		this._info = {
+			nick: nick
+		}
+
+		this._connection = connection
+
+		this._modes = []
+	}
+
+
+	addWhois(key, value){
+		this._whois[key] = value
+	}
+
+	/**
+	 * Gets the users whois data
+	 * @type {Object}
+	 */
+	get whois(){
+		return this._whois
+	}
+
+	/**
+	 * Gets the users modes
+	 * @type {?Array.&lt;String>}
+	 */
+	get modes(){
+		return this._modes
+	}
+
+	/**
+	 * Adds a mode to the user
+	 * @function
+	 * @param {String} mode - The mode to add
+	 */
+	addMode(mode){
+		this._modes.push(mode)
+	}
+
+	/**
+	 * Removes a mode from the user
+	 * @function
+	 * @param {String} mode - The mode to remove
+	 */
+	removeMode(mode){
+		let index = this._modes.indexOf(mode)
+		if(index > -1){
+			this._modes.splice(index, 1)
+		}
+	}
+
+	set(name, value){
+		this._info[name] = value
+		return this
+	}
+
+	/**
+	 * Gets the users info
+	 * @type {Object}
+	 */
+	get info(){
+		return this._info
+	}
+
+	/**
+	 * Sends a message to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendMessage(message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :${message}\n`)
+	}
+
+	/**
+	 * Sends an action message to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendAction(message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :\u0001ACTION ${message}\u0001\n`)
+	}
+
+	/**
+	 * Sends a CTCP notice to the user
+	 * @function
+	 * @param {String} type - The type to send
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendCTCP(type, message){
+		this._connection.write(`NOTICE ${this._info.nick} :\u0001${type} ${message}\u0001\n`)
+	}
+
+	/**
+	 * Sends a CTCP query to the user
+	 * @function
+	 * @param {String} type - The type to send
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendCTCPQuery(type, message){
+		this._connection.write(`PRIVMSG ${this._info.nick} :\u0001${type} ${message}\u0001\n`)
+	}
+
+	/**
+	 * Sends a notice to the user
+	 * @function
+	 * @param {String} message - The message to send
+	 */
+	notice(message){
+		this._connection.write(`NOTICE ${this._info.nick} :${message}\n`)
+	}
+}
+
+module.exports = User</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Formatting.html">Formatting</a></li></ul><h3>Classes</h3><ul><li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="DCC.html">DCC</a></li><li><a href="global.html#User">User</a></li></ul><h3>Events</h3><ul><li><a href="Channel.html#event:+mode">+mode</a></li><li><a href="Channel.html#event:-mode">-mode</a></li><li><a href="Channel.html#event:join">join</a></li><li><a href="Channel.html#event:kick">kick</a></li><li><a href="Channel.html#event:message">message</a></li><li><a href="Channel.html#event:nick">nick</a></li><li><a href="Channel.html#event:part">part</a></li><li><a href="Client.html#event:+mode">+mode</a></li><li><a href="Client.html#event:-mode">-mode</a></li><li><a href="Client.html#event:disconnected">disconnected</a></li><li><a href="Client.html#event:error">error</a></li><li><a href="Client.html#event:invite">invite</a></li><li><a href="Client.html#event:message">message</a></li><li><a href="Client.html#event:nick">nick</a></li><li><a href="Client.html#event:part">part</a></li><li><a href="Client.html#event:ready">ready</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Wed Oct 04 2017 07:33:44 GMT+0200 (Västeuropa, sommartid)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

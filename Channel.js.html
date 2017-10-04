@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Channel.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Channel.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const EventEmitter = require('events')
+const User = require("./User")
+
+/**
+ * @class
+ */
+class Channel extends EventEmitter{
+	constructor(connection, channelName){
+		super()
+
+		this._connection = connection
+		this._channelName = channelName
+
+		this._users = new Map()
+
+		this._mode = ""
+		this._modeParams = {}
+	}
+
+	/**
+	 * The name of the channel
+	 * @type {String}
+	 */
+	get name(){
+		return this._channelName
+	}
+
+	/**
+	 * The mode of the channel
+	 * @type {String}
+	 */
+	get mode(){
+		return this._mode
+	}
+
+	/**
+	 * The channels mode params
+	 * @type {Object}
+	 */
+	get modeParams(){
+		return this._modeParams
+	}
+
+	/**
+	 * The topic of the channel
+	 * @type {String}
+	 */
+	get topic(){
+		return this._topic
+	}
+
+	/**
+	 * The users in the channel
+	 * @type {Map}
+	 */
+	get users(){
+		return this._users
+	}
+
+	/**
+	 * Adds a mode
+	 * @function
+	 * @param {String} mode - The mode to add
+	 */
+	addMode(mode){
+		this._mode += mode
+	}
+
+	/**
+	 * Sets the mode of the channel
+	 * @param {String} mode - The mode to set
+	 */
+	setMode(mode){
+		this._mode = mode
+	}
+
+	/**
+	 * Sets a mode param
+	 * @function
+	 * @param {String} name - The name to set
+	 * @param {String} value - The value to set
+	 */ 
+	setModeParam(name, value){
+		this._modeParams[name] = value
+	}
+
+	handleTopic(message){
+		this._topic = {by: message.nick, text: message.args[1]}
+		this.emit('topic', this._topic)
+	}
+
+	/**
+	 * Emits when a user joins the channel
+	 * @event Channel#join
+	 * @type {Object}
+	 * @property {User} user - The user that joined
+	 */
+	handleJoin(message){
+		const user = new User(message.nick, this._connection)
+
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
+
+		this._users.set(message.nick, user)
+
+		this.emit("join", user)
+	}
+
+
+	/**
+	 * Emits when the channel revieves a message
+	 * @event Channel#message
+	 * @type {Object}
+	 * @property {User} user - The user that sent the message
+	 * @property {String} message - The message that was sent
+	 */
+	handleMessage(message){
+		const user = new User(message.nick, this._connection)
+
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
+
+		if(Object.keys(this._users.get(message.nick).info).length === 1){
+			this._users.set(message.nick, user)
+		}
+
+		this.emit("message", user, message.args[1])
+	}
+
+	handleNames(message){
+		let users = message.args[3].trim().split(/ +/)
+
+		users.map(user => {
+			let username = user.replace("@", "").replace("+", "")
+			this._users.set(username, new User(username, this._connection))
+		})
+	}
+
+	handleRaw(message){
+		switch(message.command){
+			case "JOIN":
+				this.handleJoin(message)
+			break
+			case "PART":
+				this.handlePart(message)
+			break
+			case "PRIVMSG":
+				this.handleMessage(message)
+			break
+			case "TOPIC":
+				this.handleTopic(message)
+			break
+			case "KICK":
+				this.handleKick(message)
+			break
+			case "RPL_NAMREPLY":
+				this.handleNames(message)
+			break
+			case "NICK":
+				this.handleNick(message)
+			break
+			case "MODE":
+				this.handleMode(message)
+			break
+		}
+	}
+
+	/**
+	 * Emits when the a user in the channel gets their modes updated
+	 * @event Channel#+mode
+	 * @type {Object}
+	 * @property {Object} data - The data of the event
+	 * @property {User} data.user - The user that was updated
+	 * @property {String} data.from - The nick of the user that updated the mode
+	 * @property {Array.&lt;String>} data.modes - The modes that was added
+	 */
+
+	 /**
+	 * Emits when the a user in the channel gets their modes updated
+	 * @event Channel#-mode
+	 * @type {Object}
+	 * @property {Object} data - The data of the event
+	 * @property {User} data.user - The user that was updated
+	 * @property {String} data.from - The nick of the user that updated the mode
+	 * @property {Array.&lt;String>} data.modes - The modes that was removed
+	 */
+	handleMode(message){
+		let split = message.args[1].split("")
+
+		let action = split[0]
+
+		split.shift()
+
+		if(args[2] !== undefined){
+
+			let user = this._users.get(args[2])
+
+			if(action === "+"){
+				split.map(mode => {
+					user.addMode(mode)
+				})
+			}else if(action === "-"){
+				split.map(mode => {
+					user.removeMode(mode)
+				})
+			}
+
+			this.emit(`${action}mode`, {
+				user: user,
+				from: message.nick,
+				modes: split
+			})
+		}
+	}
+
+	/**
+	 * Emits when a user changes their nick
+	 * @event Channel#nick
+	 * @type {Object}
+	 * @property {String} oldNick - The old nickname of the user
+	 * @property {String} newNick - The new nickname of the user
+	 * @property {User} user - The user object
+	 */
+	handleNick(message){
+		this._users.delete(message.nick)
+
+		const user = new User(message.args[0], this._connection)
+
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
+
+		this._users.set(message.args[0], user)
+
+		this.emit("nick", message.nick, message.args[0], user)
+	}
+
+	/**
+	 * Emits when a user parts the channel
+	 * @event Channel#part
+	 * @type {Object}
+	 * @property {User} user - The user that parted
+	 * @property {String} message - The message they left with
+	 */
+	handlePart(message){
+		message.args.shift()
+
+		const user = new User(message.nick, this._connection)
+
+		user.set("prefix", message.prefix)
+			.set("user", message.user)
+			.set("host", message.host)
+
+		this._users.delete(message.nick)
+
+		this.emit("part", user, message.args[0])
+	}
+
+	/**
+	 * Emits when a user is kicked from the channel
+	 * @event Channel#kick
+	 * @type {Object}
+	 * @property {User} user - The user that was kicked
+	 * @property {User} by - The user who kicked
+	 * @property {String} reason - The reason for the kick
+	 */
+	handleKick(message){
+		let user = this._users.get(message.args[1])
+
+		this._users.delete(message.nick)
+
+		this.emit("kick", user, message.nick, message.args[2])
+	}
+
+	/**
+	 * Sends a message to the channel
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendMessage(message){
+		this._connection.write(`PRIVMSG ${this._channelName} :${message}\n`)
+	}
+
+	/**
+	 * Sends an action message to the channel
+	 * @function
+	 * @param {String} message - The message to send
+	 * @author Mackan
+	 */
+	sendAction(message){
+		this._connection.write(`PRIVMSG ${this._channelName} :\u0001ACTION ${message}\u0001\n`)
+	}
+
+	/**
+	 * Updates the modes of a user in the channel
+	 * @function
+	 * @param {String} nick - The nickname of the user to update the modes for
+	 * @param {String} mode - What modes to add
+	 */
+	mode(nick, mode){
+		this.sendCommand(`MODE ${this._channelName} ${this._clientData.nick} ${mode}\n`)
+	}
+}
+
+module.exports = Channel</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Formatting.html">Formatting</a></li></ul><h3>Classes</h3><ul><li><a href="Channel.html">Channel</a></li><li><a href="Client.html">Client</a></li><li><a href="DCC.html">DCC</a></li><li><a href="global.html#User">User</a></li></ul><h3>Events</h3><ul><li><a href="Channel.html#event:+mode">+mode</a></li><li><a href="Channel.html#event:-mode">-mode</a></li><li><a href="Channel.html#event:join">join</a></li><li><a href="Channel.html#event:kick">kick</a></li><li><a href="Channel.html#event:message">message</a></li><li><a href="Channel.html#event:nick">nick</a></li><li><a href="Channel.html#event:part">part</a></li><li><a href="Client.html#event:+mode">+mode</a></li><li><a href="Client.html#event:-mode">-mode</a></li><li><a href="Client.html#event:disconnected">disconnected</a></li><li><a href="Client.html#event:error">error</a></li><li><a href="Client.html#event:invite">invite</a></li><li><a href="Client.html#event:message">message</a></li><li><a href="Client.html#event:nick">nick</a></li><li><a href="Client.html#event:part">part</a></li><li><a href="Client.html#event:ready">ready</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Wed Oct 04 2017 07:33:44 GMT+0200 (Västeuropa, sommartid)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
