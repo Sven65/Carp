@@ -2,7 +2,6 @@ const EventEmitter = require('events')
 const User = require("./User")
 
 /**
-
  * @class
  */
 class Channel extends EventEmitter{
@@ -188,8 +187,6 @@ class Channel extends EventEmitter{
 	 * @property {Array.<String>} data.modes - The modes that was removed
 	 */
 	handleMode(message){
-		console.log(message)
-
 		let split = message.args[1].split("")
 
 		let action = split[0]
