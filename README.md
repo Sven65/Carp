@@ -2,11 +2,13 @@
 
 An IRC Library for Node.js
 
+Install using `npm install carpjs`
+
 ## Example usage
 
 
 ```javascript
-const Carp = require("carp-irc")
+const Carp = require("carpjs")
 const Client = new Carp.Client({
 	username: "MyClient"
 })
