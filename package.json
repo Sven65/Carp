@@ -1,5 +1,5 @@
 {
-  "name": "carp-irc",
+  "name": "carpjs",
   "version": "1.0.3",
   "description": "An extensive irc library for node.js.",
   "main": "src/index.js",

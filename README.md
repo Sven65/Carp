@@ -1,6 +1,8 @@
 # Carp
 A JS IRC library
 
+Install using `npm install carpjs`
+
 # More documentation is available as a JSDoc [here](https://mackan.xyz/Carp)
 
 # Example usage:
